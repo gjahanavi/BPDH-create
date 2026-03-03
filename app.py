@@ -90,7 +90,7 @@ def main() -> None:
         errors = validation_result["errors"]
         df: pd.DataFrame | None = validation_result["df"]
 
-        if not df or df.empty:
+        if df is None or df.empty:
             st.error("The uploaded file appears to be empty or unreadable.")
             return
 
