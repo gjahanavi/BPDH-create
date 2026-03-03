@@ -1,0 +1,45 @@
+schema_version: "1.0"
+
+required_columns:
+  - BP_ID
+  - BP_NAME
+  - COUNTRY
+  - BP_TYPE
+  - EMAIL
+
+optional_columns:
+  - PHONE
+  - ADDRESS1
+  - ADDRESS2
+  - CITY
+  - ZIP
+  - TAX_ID
+
+email:
+  column: "EMAIL"
+  # Simple email pattern; adjust as needed in real implementations.
+  regex: "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+
+country:
+  column: "COUNTRY"
+  allowed_values:
+    - IN
+    - US
+    - GB
+    - DE
+    - FR
+    - SG
+    - AU
+    - AE
+
+unique:
+  column: "BP_ID"
+
+bp_type_country_rule:
+  bp_type_column: "BP_TYPE"
+  country_column: "COUNTRY"
+  bp_type_value: "VENDOR"
+  allowed_countries:
+    - IN
+    - US
+    - GB
