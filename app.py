@@ -9,6 +9,7 @@ import streamlit as st
 from config.settings import get_env_config
 from modules.batch_executor import run_step6_batch
 from modules.dih_executor import (
+    HAS_DB2,
     run_step4_pre_landing,
     run_step5_landing,
     run_step7_downstream,
@@ -192,6 +193,15 @@ def main() -> None:
         # Automated pipeline: Steps 3–7
         # =========================
         st.markdown("### 4️⃣–7️⃣ Automated BPDH Pipeline")
+
+        # If DB2 driver is not available (e.g. Streamlit Cloud), disable the pipeline UI.
+        if not HAS_DB2:
+            st.warning(
+                "DB2 driver (`ibm_db`) is not available in this environment, "
+                "so the automated pipeline steps 4–7 are disabled. "
+                "You can still use validation and CSV/manifest generation."
+            )
+            return
 
         env_cfg = get_env_config(env)
 

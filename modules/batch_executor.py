@@ -1,9 +1,8 @@
 from typing import Callable, Tuple
 
-import ibm_db
-
 from config.settings import EnvConfig
 from modules.dih_executor import (
+    HAS_DB2,
     _fetch_single_int,
     _open_db2,
     _poll_job_status,
@@ -27,6 +26,9 @@ def run_step6_batch(
     3) validate counts in STAGING and BO tables.
     """
     logger.info("Step 6: Batch jobs for batch %s", batch_id)
+
+    if not HAS_DB2:
+        raise RuntimeError("DB2 driver (ibm_db) is not available in this environment.")
 
     client = _ssh_client(env_cfg.batch_host, env_cfg.batch_user, env_cfg.ssh_key_path)
     conn = _open_db2(env_cfg.db2_dsn)
@@ -67,7 +69,9 @@ def run_step6_batch(
         return True, staging_count, bo_count
     finally:
         try:
-            ibm_db.close(conn)
+            import ibm_db  # local import to avoid hard dependency at module level
+
+            ibm_db.close(conn)  # type: ignore[attr-defined]
         except Exception:
             pass
         client.close()

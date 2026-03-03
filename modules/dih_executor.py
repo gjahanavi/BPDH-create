@@ -1,13 +1,21 @@
 import time
 from typing import Callable, List, Tuple
 
-import ibm_db
 import paramiko
 
 from config.settings import EnvConfig
 from modules.logging_utils import get_logger
 
 logger = get_logger()
+
+try:  # Optional dependency for DB2 – not available on Streamlit Cloud
+    import ibm_db  # type: ignore
+
+    HAS_DB2 = True
+except Exception:  # pragma: no cover - environment dependent
+    ibm_db = None  # type: ignore
+    HAS_DB2 = False
+
 
 POLL_INTERVAL_SECONDS = 30
 
@@ -31,6 +39,8 @@ def _run_remote(client: paramiko.SSHClient, command: str) -> tuple[int, str, str
 
 
 def _open_db2(dsn: str):
+    if not HAS_DB2:
+        raise RuntimeError("DB2 driver (ibm_db) is not available in this environment.")
     conn = ibm_db.connect(dsn, "", "")
     return conn
 
