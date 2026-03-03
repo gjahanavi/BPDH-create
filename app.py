@@ -1,4 +1,3 @@
-import io
 import json
 import os
 from datetime import datetime
@@ -7,7 +6,6 @@ from typing import Any, Dict, List
 import pandas as pd
 import streamlit as st
 
-from src.transfer import sftp_put_and_verify
 from src.utils import (
     render_filename,
     sha256_of_bytes,
@@ -56,8 +54,7 @@ def main() -> None:
 
     st.title("BPDH – Business Partner Mass Create")
     st.write(
-        "Validate Business Partner Excel files, generate versioned CSVs and manifests, "
-        "and optionally upload to SFTP landing. ✅"
+        "Validate Business Partner Excel files and generate versioned CSVs and manifests. ✅"
     )
 
     # Sidebar configuration
@@ -176,79 +173,6 @@ def main() -> None:
         )
 
         st.code(manifest_json, language="json")
-
-        st.markdown("### 4️⃣ Optional: Upload to SFTP 🚀")
-        sftp_enabled = st.checkbox("Enable SFTP upload (optional)")
-
-        if sftp_enabled:
-            sftp_defaults = st.secrets.get("sftp", {}) if hasattr(st, "secrets") else {}
-
-            col1, col2 = st.columns(2)
-            with col1:
-                host = st.text_input(
-                    "SFTP host",
-                    value=str(sftp_defaults.get("host", "")),
-                )
-                port_str = st.text_input(
-                    "SFTP port",
-                    value=str(sftp_defaults.get("port", "22")),
-                )
-                username = st.text_input(
-                    "SFTP username",
-                    value=str(sftp_defaults.get("username", "")),
-                )
-            with col2:
-                key_path = st.text_input(
-                    "Path to private key (RSA)",
-                    value=str(sftp_defaults.get("key_path", "")),
-                )
-                remote_dir = st.text_input(
-                    "Remote landing directory",
-                    value=str(sftp_defaults.get("remote_dir", "/landing")),
-                )
-
-            if st.button("Upload CSV to SFTP"):
-                missing_fields = [
-                    name
-                    for name, value in [
-                        ("host", host),
-                        ("port", port_str),
-                        ("username", username),
-                        ("key_path", key_path),
-                        ("remote_dir", remote_dir),
-                    ]
-                    if not str(value).strip()
-                ]
-                if missing_fields:
-                    st.warning(
-                        "SFTP is enabled, but some parameters are missing: "
-                        + ", ".join(missing_fields)
-                        + ". Please fill them in before uploading. ⚠️"
-                    )
-                else:
-                    try:
-                        port = int(port_str)
-                    except ValueError:
-                        st.error("SFTP port must be a valid integer.")
-                        return
-
-                    with st.spinner("Uploading CSV to SFTP and verifying..."):
-                        try:
-                            remote_path = sftp_put_and_verify(
-                                host=host,
-                                port=port,
-                                username=username,
-                                key_path=key_path,
-                                local_path=local_csv_path,
-                                remote_dir=remote_dir,
-                            )
-                        except Exception as exc:  # pragma: no cover - environment-dependent
-                            st.error(f"SFTP upload failed: {exc}")
-                        else:
-                            st.success(
-                                f"SFTP upload completed successfully. "
-                                f"Remote path: `{remote_path}` ✅"
-                            )
 
 
 if __name__ == "__main__":
